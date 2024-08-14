@@ -7,9 +7,18 @@ jobs:
       - checkout
       - run: go version
       - run: go build -o output_name main.go
-      - run: go test ./...
+  test:
+    docker:
+      - image: golang:1.22
+    steps:
+      - checkout
+      - run: go test ./... -v
+
 workflows:
   version: 2
   build_and_test:
     jobs:
       - build
+      - test:
+          requires:
+            - build
