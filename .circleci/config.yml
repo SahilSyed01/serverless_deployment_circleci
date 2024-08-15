@@ -3,8 +3,8 @@ version: 2.1
 executors:
   go-executor:
     docker:
-      - image: golang:1.22  # Use an official Go image
-    working_directory: /go/src/github.com/SahilSyed01/service
+      - image: golang:1.22  # Use a compatible Go version
+    working_directory: /go/src/github.com/your-repo/your-service
 
 jobs:
   build:
@@ -29,10 +29,17 @@ jobs:
       - image: circleci/python:3.8  # Python for SSH
     steps:
       - checkout
+
+      - run:
+          name: Ensure no other apt processes are running
+          command: |
+            sudo lsof /var/lib/apt/lists/lock || true
+
       - run:
           name: Install SSH Client
           command: |
-            apt-get update && apt-get install -y ssh
+            sudo apt-get update && sudo apt-get install -y ssh
+
       - run:
           name: Create Deployment Script
           command: |
@@ -42,6 +49,7 @@ jobs:
             echo 'cp ~/repo/your-service /home/ec2-user/your-service/' >> deploy.sh
             echo 'sudo systemctl start your-service' >> deploy.sh
             chmod +x deploy.sh
+
       - run:
           name: Deploy to EC2
           command: |
