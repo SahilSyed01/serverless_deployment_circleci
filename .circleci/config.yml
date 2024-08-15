@@ -3,7 +3,7 @@ version: 2.1
 executors:
   go-executor:
     docker:
-      - image: golang:1.21
+      - image: golang:1.22
     working_directory: /go/src/github.com/your-repo/your-service
 
 jobs:
