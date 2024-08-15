@@ -31,7 +31,7 @@ jobs:
       - image: circleci/python:3.8
     steps:
       - checkout
-       - run:
+      - run:
           name: Set Permissions for Deploy Script
           command: chmod +x deploy.sh
       - run:
