@@ -1,10 +1,14 @@
 #!/bin/bash
 
-# Save the SSH key to a file
-echo "$EC2_SSH_KEY" | tr -d '\r' > /tmp/your-key.pem
+# Ensure that the SSH key is saved correctly
+echo "$EC2_SSH_KEY" | tr -d '\r' | tee /tmp/your-key.pem > /dev/null
 chmod 600 /tmp/your-key.pem
 
-# Verify the key format (for debugging)
+# Print the length of the SSH key file for debugging
+echo "SSH key file length:"
+wc -c < /tmp/your-key.pem
+
+# Verify the format of the key file
 file /tmp/your-key.pem
 
 # Copy the binary to the EC2 instance
