@@ -1,48 +1,38 @@
 version: 2.1
 
-executors:
-  go-executor:
-    docker:
-      - image: circleci/golang:1.22
-    working_directory: /go/src/github.com/SahilSyed01/service
-
 jobs:
   build:
-    executor: go-executor
+    docker:
+      - image: circleci/golang:1.22
     steps:
       - checkout
       - run:
-          name: Install Dependencies
-          command: go mod download
-      - run:
-          name: Build the Service
-          command: go build -o service
-      - run:
-          name: Run Tests
-          command: go test ./...
+          name: Build Go Binary
+          command: |
+            go build -o myservice ./path/to/your/main.go
+      - persist_to_workspace:
+          root: .
+          paths:
+            - myservice
 
   deploy:
-    executor: go-executor
+    docker:
+      - image: circleci/python:3.8
     steps:
-      - checkout
+      - attach_workspace:
+          at: /workspace
       - run:
-          name: SCP the Service to EC2
+          name: Deploy to AWS EC2
           command: |
-            chmod 400 ${EC2_SSH_KEY}
-            scp -i ${EC2_SSH_KEY} -o "StrictHostKeyChecking=no" service ec2-user@${EC2_PUBLIC_IP}:/home/ec2-user/service
-      - run:
-          name: SSH into EC2 and Restart Service
-          command: |
-            ssh -i ${EC2_SSH_KEY} -o "StrictHostKeyChecking=no" ec2-user@${EC2_PUBLIC_IP} << 'EOF'
-            sudo mv /home/ec2-user/service /usr/local/bin/service
-            sudo chmod +x /usr/local/bin/service
-            sudo systemctl stop my-go-service || true
-            sudo systemctl start my-go-service
+            scp -i $EC2_SSH_KEY -o StrictHostKeyChecking=no /workspace/myservice ec2-user@$EC2_PUBLIC_IP:/home/ec2-user/myservice
+            ssh -i $EC2_SSH_KEY -o StrictHostKeyChecking=no ec2-user@$EC2_PUBLIC_IP << 'EOF'
+              sudo mv /home/ec2-user/myservice /usr/local/bin/myservice
+              sudo systemctl restart myservice || (sudo systemctl start myservice)
             EOF
 
 workflows:
   version: 2
-  build_and_deploy:
+  deploy:
     jobs:
       - build
       - deploy:
