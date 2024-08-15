@@ -3,7 +3,7 @@ version: 2.1
 executors:
   go-executor:
     docker:
-      - image: golang:1.20  # Use an official Go image
+      - image: golang:1.22  # Use an official Go image
     working_directory: /go/src/github.com/SahilSyed01/service
 
 jobs:
