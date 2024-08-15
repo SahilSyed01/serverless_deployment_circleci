@@ -31,19 +31,14 @@ jobs:
       - checkout
 
       - run:
-          name: Ensure no other apt processes are running
-          command: |
-            sudo lsof /var/lib/apt/lists/lock || true
-
-      - run:
           name: Install SSH Client
           command: |
             sudo apt-get update && sudo apt-get install -y ssh
 
       - run:
-          name: Write SSH Key
+          name: Decode and Write SSH Key
           command: |
-            echo "$EC2_SSH_KEY" > /tmp/id_rsa
+            echo "$EC2_SSH_KEY" | base64 -d > /tmp/id_rsa
             chmod 600 /tmp/id_rsa
 
       - run:
