@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Save the encoded SSH key to a file
-echo "$EC2_SSH_KEY" > /tmp/your-key.pem
+# Decode the base64 encoded SSH key and save it as a file
+echo "$EC2_SSH_KEY" | base64 --decode > /tmp/your-key.pem
 chmod 600 /tmp/your-key.pem
 
 # Copy the binary to the EC2 instance
