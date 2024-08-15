@@ -3,8 +3,8 @@ version: 2.1
 executors:
   go-executor:
     docker:
-      - image: circleci/golang:1.19
-    working_directory: /go/src/github.com/your-repo/your-service
+      - image: golang:1.20  # Use an official Go image
+    working_directory: /go/src/github.com/SahilSyed01/service
 
 jobs:
   build:
