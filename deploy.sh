@@ -15,3 +15,4 @@ ssh -i /tmp/your-key.pem -o StrictHostKeyChecking=no ec2-user@$EC2_PUBLIC_IP << 
   sudo mv /home/ec2-user/myservice /usr/local/bin/myservice
   sudo systemctl restart myservice || (sudo systemctl start myservice)
 ENDSSH
+#
