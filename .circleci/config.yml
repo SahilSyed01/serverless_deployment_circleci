@@ -32,13 +32,11 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Set execute permission on deploy.sh
-          command: chmod +x ./deploy.sh
-      - run:
           name: Save PEM Key File
           command: |
             echo "$EC2_SSH_KEY" | tee /tmp/your-key.pem > /dev/null
             chmod 600 /tmp/your-key.pem
+            
       - run:
           name: Deploy to EC2
           command: ./deploy.sh
