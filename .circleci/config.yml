@@ -32,12 +32,20 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Set Permissions for Deploy Script
-          command: chmod +x deploy.sh
+          name: Decode and Save PEM File
+          command: |
+            echo "$EC2_SSH_KEY" | base64 --decode > /tmp/key-pair.pem
+            chmod 600 /tmp/key-pair.pem
+      - run:
+          name: List Directory Contents
+          command: ls -l /tmp
       - run:
           name: Deploy to EC2
           command: |
-            ./deploy.sh
+            ssh -i /tmp/your-key.pem -o StrictHostKeyChecking=no ec2-user@$EC2_PUBLIC_IP << 'ENDSSH'
+              sudo mv /home/ec2-user/myservice /usr/local/bin/myservice
+              sudo systemctl restart myservice || (sudo systemctl start myservice)
+            ENDSSH
 
 workflows:
   version: 2
