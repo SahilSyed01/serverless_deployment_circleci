@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Ensure the binary exists
+if [ ! -f /workspace/myservice ]; then
+  echo "Error: /workspace/myservice does not exist."
+  exit 1
+fi
+
 # Decode the base64 encoded SSH key and save it as a file
 echo "$EC2_SSH_KEY" | base64 --decode > /tmp/your-key.pem
 chmod 600 /tmp/your-key.pem

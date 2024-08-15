@@ -16,7 +16,8 @@ jobs:
           command: go mod tidy
       - run:
           name: Build Go application
-          command: go build -o myapp
+          command: go build -o /workspace/myservice /go/src/github.com/SahilSyed01/service
+
 
   deploy:
     docker:
