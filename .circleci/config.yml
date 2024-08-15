@@ -1,44 +1,58 @@
 version: 2.1
 
-jobs:
-  build:
+executors:
+  go-executor:
     docker:
-      - image: circleci/golang:1.19  # Use a valid Go image
+      - image: circleci/golang:1.22
     working_directory: /go/src/github.com/SahilSyed01/service
 
+jobs:
+  build:
+    executor: go-executor
     steps:
       - checkout
       - run:
-          name: Download Dependencies
-          command: go mod download
+          name: Set up Go modules
+          command: go mod tidy
       - run:
-          name: Run Tests
-          command: go test ./...
+          name: Build Go application
+          command: go build -o myapp
+
+  test:
+    executor: go-executor
+    steps:
+      - checkout
       - run:
-          name: Build Application
-          command: go build -o your-service
+          name: Run tests
+          command: go test -v ./...
 
   deploy:
     docker:
-      - image: circleci/python:3.8  # Python image to run the SSH commands
+      - image: circleci/python:3.8
     steps:
+      - checkout
+      - run:
+          name: Decode and Save PEM File
+          command: |
+            echo $EC2_SSH_KEY | base64 -d > /tmp/your-key.pem
+            chmod 600 /tmp/your-key.pem
       - run:
           name: Deploy to EC2
           command: |
-            echo "$EC2_SSH_KEY" > /tmp/id_rsa
-            chmod 600 /tmp/id_rsa
-            ssh -o StrictHostKeyChecking=no -i /tmp/id_rsa ec2-user@$EC2_PUBLIC_IP << 'EOF'
-              sudo systemctl stop myapp || true
-              mkdir -p /home/ec2-user/myapp
-              sudo cp /home/ec2-user/your-service /home/ec2-user/myapp/your-service
-              sudo systemctl start myapp
+            scp -i /tmp/your-key.pem -o StrictHostKeyChecking=no myapp ec2-user@$EC2_PUBLIC_IP:~/my-go-app/
+            ssh -i /tmp/your-key.pem -o StrictHostKeyChecking=no ec2-user@$EC2_PUBLIC_IP << 'EOF'
+              cd ~/my-go-app
+              nohup ./myapp &
             EOF
 
 workflows:
   version: 2
-  build_and_deploy:
+  build_test_deploy:
     jobs:
       - build
-      - deploy:
+      - test:
           requires:
             - build
+      - deploy:
+          requires:
+            - test
