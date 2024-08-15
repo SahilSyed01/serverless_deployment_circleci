@@ -22,15 +22,14 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "your-ssh-key-fingerprint"  # Replace with your SSH key fingerprint from CircleCI
+            - "SHA256:wzMiDgN/K58LkTcCx4KitUbtkHn0Sd29j+qcxBHxlkw"  # Replace with your SSH key fingerprint from CircleCI
       - checkout
       - run:
           name: Deploy Web Service
           command: |
-            # Replace with your actual instance IP
-            INSTANCE_IP="34.207.182.33"
-            scp -i ~/.ssh/id_rsa output_name ec2-user@$INSTANCE_IP:/home/ec2-user/
-            ssh -i ~/.ssh/id_rsa ec2-user@$INSTANCE_IP "sudo mv /home/ec2-user/output_name /usr/local/bin/ && sudo systemctl restart my-web-service"
+            INSTANCE_IP="34.207.182.33"  # Your EC2 instance IP
+            scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa output_name ec2-user@$INSTANCE_IP:/home/ec2-user/
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@$INSTANCE_IP "sudo mv /home/ec2-user/output_name /usr/local/bin/ && sudo systemctl restart my-web-service"
 
 workflows:
   version: 2
