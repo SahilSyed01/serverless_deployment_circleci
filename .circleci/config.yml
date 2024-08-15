@@ -34,8 +34,8 @@ jobs:
       - run:
           name: Decode and Save PEM File
           command: |
-            echo "$EC2_SSH_KEY" | base64 --decode > /tmp/key-pair.pem
-            chmod 600 /tmp/key-pair.pem
+            echo "$EC2_SSH_KEY" | base64 --decode > /tmp/your-key.pem
+            chmod 600 /tmp/your-key.pem
       - run:
           name: List Directory Contents
           command: ls -l /tmp
