@@ -1,14 +1,26 @@
 version: 2.1
 
 executors:
-  deploy-executor:
+  go-executor:
     docker:
-      - image: circleci/python:3.8
+      - image: golang:1.22
     working_directory: /go/src/github.com/SahilSyed01/service
 
 jobs:
+  build:
+    executor: go-executor
+    steps:
+      - checkout
+      - run:
+          name: Set up Go modules
+          command: go mod tidy
+      - run:
+          name: Build Go application
+          command: go build -o myapp
+
   deploy:
-    executor: deploy-executor
+    docker:
+      - image: circleci/python:3.8
     steps:
       - checkout
       - run:
@@ -20,6 +32,9 @@ jobs:
 
 workflows:
   version: 2
-  deploy_workflow:
+  build_deploy:
     jobs:
-      - deploy
+      - build
+      - deploy:
+          requires:
+            - build
