@@ -18,24 +18,17 @@ jobs:
 
   deploy:
     docker:
-      - image: hashicorp/terraform:latest
+      - image: circleci/python:3.8  # Python image for SSH utilities
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "SHA256:wzMiDgN/K58LkTcCx4KitUbtkHn0Sd29j+qcxBHxlkwt"  # Replace with your SSH key fingerprint from CircleCI
+            - "SHA256:wzMiDgN/K58LkTcCx4KitUbtkHn0Sd29j+qcxBHxlkw"  # Replace with your SSH key fingerprint from CircleCI
       - checkout
-      # - run:
-      #     name: Clone Terraform Repo
-      #     command: |
-      #       git clone https://github.com/SahilSyed01/infra.git
-      #       cd infra
-      #       terraform init
-      #       terraform apply -auto-approve
       - run:
           name: Deploy Web Service
           command: |
-            cd infra
-            export INSTANCE_IP=$(terraform output -raw instance_ip)
+            # Replace with your actual instance IP
+            INSTANCE_IP="your-ec2-instance-public-ip"
             scp -i ~/.ssh/id_rsa output_name ubuntu@$INSTANCE_IP:/home/ubuntu/
             ssh -i ~/.ssh/id_rsa ubuntu@$INSTANCE_IP "sudo mv /home/ubuntu/output_name /usr/local/bin/ && sudo systemctl restart my-web-service"
 
