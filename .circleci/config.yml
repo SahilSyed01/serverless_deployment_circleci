@@ -3,7 +3,7 @@ version: 2.1
 executors:
   go-executor:
     docker:
-      - image: circleci/golang:1.22
+      - image: golang:1.22
     working_directory: /go/src/github.com/SahilSyed01/service
 
 jobs:
