@@ -16,7 +16,7 @@ jobs:
           command: go mod tidy
       - run:
           name: Build Go application
-          command: go build -o /workspace/myservice 
+          command: go build -o myapp
 
   test:
     executor: go-executor
@@ -32,14 +32,20 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Save PEM Key File
-          command: |
-            echo "$EC2_SSH_KEY" | tee /tmp/your-key.pem > /dev/null
-            chmod 600 /tmp/your-key.pem
-            
+          name: Print EC2_SSH_KEY Length
+          command: echo "${#EC2_SSH_KEY}"
+
+      - run:
+          name: Verify SSH Key Format
+          command: file /tmp/your-key.pem
+
+      - run:
+          name: Set Permissions for Deploy Script
+          command: chmod +x deploy.sh
       - run:
           name: Deploy to EC2
-          command: ./deploy.sh
+          command: |
+            ./deploy.sh
 
 workflows:
   version: 2
