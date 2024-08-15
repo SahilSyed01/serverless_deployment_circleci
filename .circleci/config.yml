@@ -38,7 +38,7 @@ jobs:
             chmod 600 /tmp/your-key.pem
       - run:
           name: Deploy to EC2
-         command: |
+          command: |
             ./deploy.sh
 
 workflows:
@@ -52,5 +52,3 @@ workflows:
       - deploy:
           requires:
             - test
-
-
