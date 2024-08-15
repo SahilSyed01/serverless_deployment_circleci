@@ -1,56 +1,25 @@
 version: 2.1
 
 executors:
-  go-executor:
+  deploy-executor:
     docker:
-      - image: golang:1.22
+      - image: circleci/python:3.8
     working_directory: /go/src/github.com/SahilSyed01/service
 
 jobs:
-  build:
-    executor: go-executor
-    steps:
-      - checkout
-      - run:
-          name: Set up Go modules
-          command: go mod tidy
-      - run:
-          name: Build Go application
-          command: go build -o myapp
-
-  test:
-    executor: go-executor
-    steps:
-      - checkout
-      - run:
-          name: Run tests
-          command: go test -v ./...
-
   deploy:
-    docker:
-      - image: circleci/python:3.8
+    executor: deploy-executor
     steps:
       - checkout
       - run:
           name: Set execute permission on deploy.sh
           command: chmod +x ./deploy.sh
       - run:
-          name: Save PEM Key File
-          command: |
-            echo "$EC2_SSH_KEY" | tee /tmp/your-key.pem > /dev/null
-            chmod 600 /tmp/your-key.pem
-      - run:
           name: Deploy to EC2
           command: ./deploy.sh
 
 workflows:
   version: 2
-  build_test_deploy:
+  deploy_workflow:
     jobs:
-      - build
-      - test:
-          requires:
-            - build
-      - deploy:
-          requires:
-            - test
+      - deploy
