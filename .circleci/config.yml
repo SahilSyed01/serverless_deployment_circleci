@@ -28,7 +28,7 @@ jobs:
           name: Deploy Web Service
           command: |
             # Replace with your actual instance IP
-            INSTANCE_IP="your-ec2-instance-public-ip"
+            INSTANCE_IP="34.207.182.33"
             scp -i ~/.ssh/id_rsa output_name ubuntu@$INSTANCE_IP:/home/ubuntu/
             ssh -i ~/.ssh/id_rsa ubuntu@$INSTANCE_IP "sudo mv /home/ubuntu/output_name /usr/local/bin/ && sudo systemctl restart my-web-service"
 
