@@ -8,6 +8,10 @@ jobs:
       - checkout
       - run: go version
       - run: go build -o output_name main.go
+      - persist_to_workspace:
+          root: .
+          paths:
+            - output_name
 
   test:
     docker:
@@ -20,15 +24,18 @@ jobs:
     docker:
       - image: circleci/python:3.8  # Python image for SSH utilities
     steps:
+      - attach_workspace:
+          at: /workspace
       - add_ssh_keys:
           fingerprints:
-            - "SHA256:5kclgqGWDuvEVZzelvP+ASIEU/UmtFQi5XC9q7JvcXs"  # Replace with your SSH key fingerprint from CircleCI
-      - checkout
+            - "SHA256:5kclgqGWDuvEVZzelvP+ASIEU/UmtFQi5XC9q7JvcXs"  # Replace with your actual SSH key fingerprint
       - run:
           name: Deploy Web Service
           command: |
-            INSTANCE_IP="34.201.63.192" # Your EC2 instance IP
-            scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa output_name ec2-user@$INSTANCE_IP:/home/ec2-user/
+            INSTANCE_IP="34.201.63.192"  # Your EC2 instance IP
+            echo "Listing files in /workspace:"
+            ls /workspace
+            scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa /workspace/output_name ec2-user@$INSTANCE_IP:/home/ec2-user/
             ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@$INSTANCE_IP "sudo mv /home/ec2-user/output_name /usr/local/bin/ && sudo systemctl restart my-web-service"
 
 workflows:
