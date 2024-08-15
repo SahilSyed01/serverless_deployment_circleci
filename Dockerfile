@@ -1,18 +1,19 @@
-# Base image
-FROM golang:1.22
- 
-# Set the Current Working Directory inside the container
+# Use an official image as a base
+FROM ubuntu:20.04
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    openssh-client \
+    curl \
+    wget \
+    golang-go
+
+# Set the working directory
 WORKDIR /app
- 
-# Copy go mod and sum files
-COPY go.mod go.sum ./
- 
-# Downloads all dependencies
-RUN go mod download
- 
-# Copy the source from the current directory to the Working Directory inside the container
-COPY . .
- 
-EXPOSE 8080
- 
-CMD ["go", "run", "main.go"]
+
+# Copy your deployment script into the image
+COPY deploy.sh /app/deploy.sh
+RUN chmod +x /app/deploy.sh
+
+# Entry point for the image
+CMD ["/app/deploy.sh"]
