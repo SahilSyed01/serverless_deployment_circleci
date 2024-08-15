@@ -3,7 +3,7 @@ version: 2.1
 executors:
   go-executor:
     docker:
-      - image: golang:1.22
+      - image: circleci/golang:1.22
     working_directory: /go/src/github.com/SahilSyed01/service
 
 jobs:
@@ -12,47 +12,39 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Set up Go modules
-          command: go mod tidy
+          name: Install Dependencies
+          command: go mod download
       - run:
-          name: Build Go application
-          command: go build -o myapp
+          name: Build the Service
+          command: go build -o service
+      - run:
+          name: Run Tests
+          command: go test ./...
 
-  test:
+  deploy:
     executor: go-executor
     steps:
       - checkout
       - run:
-          name: Run tests
-          command: go test -v ./...
-
-  deploy:
-    docker:
-      - image: circleci/python:3.8
-    steps:
-      - checkout
-      - run:
-          name: Decode and Save PEM File
+          name: SCP the Service to EC2
           command: |
-            echo "$EC2_SSH_KEY" | base64 --decode > /tmp/your-key.pem
-            chmod 600 /tmp/your-key.pem
+            chmod 400 ${EC2_SSH_KEY}
+            scp -i ${EC2_SSH_KEY} -o "StrictHostKeyChecking=no" service ec2-user@${EC2_PUBLIC_IP}:/home/ec2-user/service
       - run:
-          name: Deploy to EC2
+          name: SSH into EC2 and Restart Service
           command: |
-            scp -i /tmp/your-key.pem -o StrictHostKeyChecking=no myapp ec2-user@$EC2_PUBLIC_IP:~/my-go-app/
-            ssh -i /tmp/your-key.pem -o StrictHostKeyChecking=no ec2-user@$EC2_PUBLIC_IP "cd ~/my-go-app && nohup ./myapp &"
+            ssh -i ${EC2_SSH_KEY} -o "StrictHostKeyChecking=no" ec2-user@${EC2_PUBLIC_IP} << 'EOF'
+            sudo mv /home/ec2-user/service /usr/local/bin/service
+            sudo chmod +x /usr/local/bin/service
+            sudo systemctl stop my-go-service || true
+            sudo systemctl start my-go-service
+            EOF
 
 workflows:
   version: 2
-  build_test_deploy:
+  build_and_deploy:
     jobs:
       - build
-      - test:
-          requires:
-            - build
       - deploy:
           requires:
-            - test
-
-
-#
+            - build
