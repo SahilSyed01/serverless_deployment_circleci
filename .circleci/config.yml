@@ -18,13 +18,13 @@ jobs:
           name: Build Go application
           command: go build -o myapp
 
-  # test:
-  #   executor: go-executor
-  #   steps:
-  #     - checkout
-  #     - run:
-  #         name: Run tests
-  #         command: go test -v ./...
+  test:
+    executor: go-executor
+    steps:
+      - checkout
+      - run:
+          name: Run tests
+          command: go test -v ./...
 
   deploy:
     docker:
