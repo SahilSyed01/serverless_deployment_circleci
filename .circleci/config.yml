@@ -24,13 +24,13 @@ jobs:
           fingerprints:
             - "SHA256:wzMiDgN/K58LkTcCx4KitUbtkHn0Sd29j+qcxBHxlkwt"  # Replace with your SSH key fingerprint from CircleCI
       - checkout
-      - run:
-          name: Clone Terraform Repo
-          command: |
-            git clone https://github.com/SahilSyed01/infra.git
-            cd infra
-            terraform init
-            terraform apply -auto-approve
+      # - run:
+      #     name: Clone Terraform Repo
+      #     command: |
+      #       git clone https://github.com/SahilSyed01/infra.git
+      #       cd infra
+      #       terraform init
+      #       terraform apply -auto-approve
       - run:
           name: Deploy Web Service
           command: |
