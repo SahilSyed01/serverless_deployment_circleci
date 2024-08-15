@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Save the SSH key to a file
-echo "$EC2_SSH_KEY" > /tmp/your-key.pem
+echo "$EC2_SSH_KEY" | tr -d '\r' > /tmp/your-key.pem
 chmod 600 /tmp/your-key.pem
 
 # Verify the key format (for debugging)
@@ -15,4 +15,3 @@ ssh -i /tmp/your-key.pem -o StrictHostKeyChecking=no ec2-user@$EC2_PUBLIC_IP << 
   sudo mv /home/ec2-user/myservice /usr/local/bin/myservice
   sudo systemctl restart myservice || (sudo systemctl start myservice)
 ENDSSH
-#
