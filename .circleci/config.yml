@@ -16,7 +16,7 @@ jobs:
           command: go mod tidy
       - run:
           name: Build Go application
-          command: go build -o /workspace/myservice ./cmd/myservice
+          command: go build -o /workspace/myservice 
 
   test:
     executor: go-executor
