@@ -1,12 +1,10 @@
 version: 2.1
 
-executors:
-  go-executor:
+jobs:
+  build:
     docker:
-      - image: circleci/golang:1.22
-    working_directory: /go/src/github.com/SahilSyed01/service
-
-steps:
+      - image: your-dockerhub-username/your-image-name:1.22
+    steps:
       - checkout
       - run:
           name: Build Go Binary
