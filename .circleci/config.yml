@@ -4,58 +4,41 @@ executors:
   go-executor:
     docker:
       - image: golang:1.22
-    working_directory: /go/src/github.com/SahilSyed01/service
+    working_directory: /go/src/github.com/your-repo/your-service
 
 jobs:
   build:
     executor: go-executor
     steps:
       - checkout
-
       - run:
           name: Download Dependencies
           command: go mod download
-
       - run:
           name: Run Tests
           command: go test ./...
-
       - run:
           name: Build Application
           command: go build -o your-service
 
   deploy:
     docker:
-      - image: circleci/python:3.8
+      - image: atlassian/default-image:2
     steps:
-      - checkout
-
       - run:
-          name: Install SSH Client
+          name: Save SSH Key
           command: |
-            sudo apt-get update && sudo apt-get install -y ssh
-
-      # - run:
-      #     name: Decode and Write SSH Key
-      #     command: |
-      #       echo "$EC2_SSH_KEY" | base64 -d > /tmp/id_rsa
-      #       chmod 600 /tmp/id_rsa
-
+            echo "$EC2_SSH_KEY" > /tmp/id_rsa
+            chmod 600 /tmp/id_rsa
       - run:
-          name: Create Deployment Script
+          name: Deploy Application
           command: |
-            echo '#!/bin/bash' > deploy.sh
-            echo 'sudo systemctl stop your-service || true' >> deploy.sh
-            echo 'mkdir -p /home/ec2-user/your-service' >> deploy.sh
-            echo 'cp ~/repo/your-service /home/ec2-user/your-service/' >> deploy.sh
-            echo 'sudo systemctl start your-service' >> deploy.sh
-            chmod +x deploy.sh
-
-      - run:
-          name: Deploy to EC2
-          command: |
-            scp -o StrictHostKeyChecking=no -i /tmp/id_rsa deploy.sh ec2-user@$EC2_PUBLIC_IP:/home/ec2-user/
-            ssh -o StrictHostKeyChecking=no -i /tmp/id_rsa ec2-user@$EC2_PUBLIC_IP 'bash /home/ec2-user/deploy.sh'
+            ssh -o StrictHostKeyChecking=no -i /tmp/id_rsa ec2-user@$EC2_PUBLIC_IP << 'EOF'
+              sudo systemctl stop myapp || true
+              mkdir -p /home/ec2-user/myapp
+              cp /home/ec2-user/your-service /home/ec2-user/myapp/your-service
+              sudo systemctl start myapp
+            EOF
 
 workflows:
   version: 2
