@@ -1,58 +1,53 @@
 version: 2.1
 
+executors:
+  go-executor:
+    docker:
+      - image: circleci/golang:1.19  # Specify the Go version you use
+    working_directory: ~/repo
+
 jobs:
   build:
-    docker:
-      - image: golang:1.22
+    executor: go-executor
     steps:
       - checkout
-      - run: go version
-      - run: go build -o output_name main.go
-      - persist_to_workspace:
-          root: .
-          paths:
-            - output_name
-
-  test:
-    docker:
-      - image: golang:1.22
-    steps:
-      - checkout
-      - run: go test ./... -v
+      - run:
+          name: Set up Go Modules
+          command: go mod download
+      - run:
+          name: Build Go Application
+          command: go build -o myapp main.go
+      - run:
+          name: Run Tests
+          command: go test ./...
 
   deploy:
     docker:
-      - image: circleci/python:3.8  # Python image for SSH utilities
+      - image: circleci/python:3.8  # Python for SSH
     steps:
-      - attach_workspace:
-          at: /workspace
-      - add_ssh_keys:
-          fingerprints:
-            - "SHA256:5kclgqGWDuvEVZzelvP+ASIEU/UmtFQi5XC9q7JvcXs"  # Replace with your actual SSH key fingerprint
+      - checkout
       - run:
-          name: Debug Workspace
-          command: |
-            echo "Current directory:"
-            pwd
-            echo "Listing /workspace directory:"
-            ls -la /workspace
-            echo "Checking if output_name exists:"
-            test -f /workspace/output_name && echo "File exists" || echo "File does not exist"
+          name: Install SSH Client
+          command: apt-get update && apt-get install -y ssh
       - run:
-          name: Deploy Web Service
+          name: Deploy to EC2
           command: |
-            INSTANCE_IP="34.201.63.192"  # Your EC2 instance IP
-            scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa /workspace/output_name ec2-user@$INSTANCE_IP:/home/ec2-user/
-            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@$INSTANCE_IP "sudo mv /home/ec2-user/output_name /usr/local/bin/ && sudo systemctl restart my-web-service"
+            ssh -o StrictHostKeyChecking=no -i $EC2_SSH_KEY ec2-user@$EC2_PUBLIC_IP << 'EOF'
+              sudo systemctl stop myapp || true
+              mkdir -p /home/ec2-user/myapp
+              cp ~/repo/myapp /home/ec2-user/myapp/
+              sudo systemctl start myapp
+            EOF
+    filters:
+      branches:
+        only:
+          - main
 
 workflows:
   version: 2
-  build_and_test_and_deploy:
+  build_and_deploy:
     jobs:
       - build
-      - test:
-          requires:
-            - build
       - deploy:
           requires:
-            - test
+            - build
