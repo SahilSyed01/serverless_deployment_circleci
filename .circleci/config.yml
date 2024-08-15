@@ -31,14 +31,19 @@ jobs:
           command: |
             apt-get update && apt-get install -y ssh
       - run:
+          name: Create Deployment Script
+          command: |
+            echo '#!/bin/bash' > deploy.sh
+            echo 'sudo systemctl stop myapp || true' >> deploy.sh
+            echo 'mkdir -p /home/ec2-user/myapp' >> deploy.sh
+            echo 'cp ~/repo/myapp /home/ec2-user/myapp/' >> deploy.sh
+            echo 'sudo systemctl start myapp' >> deploy.sh
+            chmod +x deploy.sh
+      - run:
           name: Deploy to EC2
           command: |
-            ssh -o StrictHostKeyChecking=no -i $EC2_SSH_KEY ec2-user@$EC2_PUBLIC_IP << 'EOF'
-              sudo systemctl stop myapp || true
-              mkdir -p /home/ec2-user/myapp
-              cp ~/repo/myapp /home/ec2-user/myapp/
-              sudo systemctl start myapp
-            EOF
+            scp -o StrictHostKeyChecking=no -i $EC2_SSH_KEY deploy.sh ec2-user@$EC2_PUBLIC_IP:/home/ec2-user/
+            ssh -o StrictHostKeyChecking=no -i $EC2_SSH_KEY ec2-user@$EC2_PUBLIC_IP 'bash /home/ec2-user/deploy.sh'
 
 workflows:
   version: 2
