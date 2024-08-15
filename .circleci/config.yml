@@ -3,7 +3,7 @@ version: 2.1
 executors:
   go-executor:
     docker:
-      - image: circleci/golang:1.22  # Specify the Go version you use
+      - image: circleci/golang:1.22  # Use a valid version
     working_directory: ~/repo
 
 jobs:

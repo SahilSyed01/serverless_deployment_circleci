@@ -1,19 +1,32 @@
-# Use an official image as a base
-FROM ubuntu:20.04
+# Use the official Golang image to build the Go application
+FROM golang:1.22 AS builder
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    openssh-client \
-    curl \
-    wget \
-    golang-go
-
-# Set the working directory
+# Set the Current Working Directory inside the container
 WORKDIR /app
 
-# Copy your deployment script into the image
-COPY deploy.sh /app/deploy.sh
-RUN chmod +x /app/deploy.sh
+# Copy go mod and sum files
+COPY go.mod go.sum ./
 
-# Entry point for the image
-CMD ["/app/deploy.sh"]
+# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
+RUN go mod download
+
+# Copy the source code into the container
+COPY . .
+
+# Build the Go app
+RUN go build -o main .
+
+# Start a new stage from scratch
+FROM alpine:latest
+
+# Install necessary packages
+RUN apk --no-cache add ca-certificates
+
+# Set the Current Working Directory inside the container
+WORKDIR /root/
+
+# Copy the Pre-built binary file from the previous stage
+COPY --from=builder /app/main .
+
+# Command to run the executable
+CMD ["./main"]
