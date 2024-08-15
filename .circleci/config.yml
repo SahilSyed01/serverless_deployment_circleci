@@ -30,11 +30,18 @@ jobs:
           fingerprints:
             - "SHA256:5kclgqGWDuvEVZzelvP+ASIEU/UmtFQi5XC9q7JvcXs"  # Replace with your actual SSH key fingerprint
       - run:
+          name: Debug Workspace
+          command: |
+            echo "Current directory:"
+            pwd
+            echo "Listing /workspace directory:"
+            ls -la /workspace
+            echo "Checking if output_name exists:"
+            test -f /workspace/output_name && echo "File exists" || echo "File does not exist"
+      - run:
           name: Deploy Web Service
           command: |
             INSTANCE_IP="34.201.63.192"  # Your EC2 instance IP
-            echo "Listing files in /workspace:"
-            ls /workspace
             scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa /workspace/output_name ec2-user@$INSTANCE_IP:/home/ec2-user/
             ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@$INSTANCE_IP "sudo mv /home/ec2-user/output_name /usr/local/bin/ && sudo systemctl restart my-web-service"
 
