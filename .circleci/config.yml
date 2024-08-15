@@ -3,8 +3,7 @@ version: 2.1
 executors:
   go-executor:
     docker:
-      - image: golang:1.22
-    working_directory: /go/src/github.com/SahilSyed01/service
+      - image: circleci/golang:1.18
 
 jobs:
   build:
@@ -12,27 +11,29 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Set up Go modules
-          command: go mod tidy
+          name: Install dependencies
+          command: go mod download
       - run:
-          name: Build Go application
-          command: go build -o myapp
+          name: Build the Go application
+          command: go build -o /workspace/myservice ./cmd/myservice
+      - persist_to_workspace:
+          root: /workspace
+          paths:
+            - myservice
 
   deploy:
-    docker:
-      - image: circleci/python:3.8
+    executor: go-executor
     steps:
-      - checkout
-      - run:
-          name: Set execute permission on deploy.sh
-          command: chmod +x ./deploy.sh
+      - attach_workspace:
+          at: /workspace
       - run:
           name: Deploy to EC2
-          command: ./deploy.sh
+          command: |
+            chmod +x ./deploy.sh
+            ./deploy.sh
 
 workflows:
-  version: 2
-  build_deploy:
+  build_and_deploy:
     jobs:
       - build
       - deploy:
