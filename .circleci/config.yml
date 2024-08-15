@@ -1,14 +1,11 @@
 version: 2.1
 
-executors:
-  go-executor:
-    docker:
-      - image: golang:1.22
-    working_directory: /go/src/github.com/SahilSyed01/service
-
 jobs:
   build:
-    executor: go-executor
+    docker:
+      - image: circleci/golang:1.19  # Use a valid image
+    working_directory: /go/src/github.com/SahilSyed01/service
+
     steps:
       - checkout
       - run:
@@ -23,20 +20,17 @@ jobs:
 
   deploy:
     docker:
-      - image: atlassian/default-image:2
+      - image: circleci/python:3.8  # Python image to run the SSH commands
     steps:
       - run:
-          name: Save SSH Key
+          name: Deploy to EC2
           command: |
             echo "$EC2_SSH_KEY" > /tmp/id_rsa
             chmod 600 /tmp/id_rsa
-      - run:
-          name: Deploy Application
-          command: |
             ssh -o StrictHostKeyChecking=no -i /tmp/id_rsa ec2-user@$EC2_PUBLIC_IP << 'EOF'
               sudo systemctl stop myapp || true
               mkdir -p /home/ec2-user/myapp
-              cp /home/ec2-user/your-service /home/ec2-user/myapp/your-service
+              sudo cp /home/ec2-user/your-service /home/ec2-user/myapp/your-service
               sudo systemctl start myapp
             EOF
 
