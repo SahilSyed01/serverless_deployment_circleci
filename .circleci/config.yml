@@ -31,11 +31,11 @@ jobs:
       - image: circleci/python:3.8
     steps:
       - checkout
-      - run:
-          name: Decode and Save PEM File
-          command: |
-            echo "$EC2_SSH_KEY" | base64 --decode > /tmp/your-key.pem
-            chmod 600 /tmp/your-key.pem
+      # - run:
+      #     name: Decode and Save PEM File
+      #     command: |
+      #       echo "$EC2_SSH_KEY" | base64 --decode > /tmp/your-key.pem
+      #       chmod 600 /tmp/your-key.pem
       - run:
           name: Set Permissions for Deploy Script
           command: chmod +x deploy.sh
