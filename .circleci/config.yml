@@ -3,7 +3,7 @@ version: 2.1
 executors:
   go-executor:
     docker:
-      - image: circleci/golang:1.19  # Specify the Go version you use
+      - image: circleci/golang:1.22  # Specify the Go version you use
     working_directory: ~/repo
 
 jobs:
@@ -28,7 +28,8 @@ jobs:
       - checkout
       - run:
           name: Install SSH Client
-          command: apt-get update && apt-get install -y ssh
+          command: |
+            apt-get update && apt-get install -y ssh
       - run:
           name: Deploy to EC2
           command: |
@@ -38,10 +39,6 @@ jobs:
               cp ~/repo/myapp /home/ec2-user/myapp/
               sudo systemctl start myapp
             EOF
-    filters:
-      branches:
-        only:
-          - main
 
 workflows:
   version: 2
