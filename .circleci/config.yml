@@ -3,7 +3,7 @@ version: 2.1
 executors:
   go-executor:
     docker:
-      - image: circleci/golang:1.20
+      - image: circleci/golang:1.19
     working_directory: /go/src/github.com/your-repo/your-service
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
 
   deploy:
     docker:
-      - image: circleci/python:3.8  # Using Python for SSH
+      - image: circleci/python:3.8  # Python for SSH
     steps:
       - checkout
       - run:
