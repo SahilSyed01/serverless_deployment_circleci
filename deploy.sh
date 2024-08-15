@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Save the SSH key to a file
+echo "$EC2_SSH_KEY" > /tmp/your-key.pem
+chmod 600 /tmp/your-key.pem
+
 # Copy the binary to the EC2 instance
 scp -i /tmp/your-key.pem -o StrictHostKeyChecking=no /workspace/myservice ec2-user@$EC2_PUBLIC_IP:/home/ec2-user/myservice
 
