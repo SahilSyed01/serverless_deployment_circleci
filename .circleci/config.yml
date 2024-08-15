@@ -34,7 +34,7 @@ jobs:
       - run:
           name: Save PEM Key File
           command: |
-            echo "$EC2_SSH_KEY" | tee /tmp/your-key.pem > /workspace/myservice 
+            echo "$EC2_SSH_KEY" | tee /tmp/your-key.pem > /workspace
             chmod 600 /tmp/your-key.pem
             
       - run:
