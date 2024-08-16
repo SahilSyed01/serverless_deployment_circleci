@@ -1,39 +1,62 @@
 version: 2.1
 
+executors:
+  go-executor:
+    docker:
+      - image: golang:1.22
+    working_directory: /go/src/github.com/SahilSyed01/service
+
 jobs:
   build:
-    docker:
-      - image: circleci/golang:1.18.10  # Updated to a valid Go image version
+    executor: go-executor
     steps:
       - checkout
-
       - run:
-          name: Install dependencies
-          command: |
-            go mod download
+          name: Set up Go modules
+          command: go mod tidy
+      - run:
+          name: Build Go application
+          command: go build -o myapp
 
+  test:
+    executor: go-executor
+    steps:
+      - checkout
       - run:
           name: Run tests
-          command: |
-            go test ./...
+          command: go test -v ./...
 
+  package:
+    executor: go-executor
+    steps:
+      - checkout
       - run:
-          name: Build the Go binary
-          command: |
-            go build -o service
-
+          name: Build Go application
+          command: go build -o myapp
       - run:
-          name: Package the build files
-          command: |
-            tar -czvf service-files.tar.gz service
+          name: Package the application
+          command: tar -czvf myapp.tar.gz myapp
 
+  deploy_s3:
+    docker:
+      - image: circleci/python:3.8
+    steps:
+      - checkout
       - run:
           name: Deploy to S3
-          command: |
-            aws s3 cp service-files.tar.gz s3://${S3_BUCKET_NAME}/
+          command: aws s3 cp myapp.tar.gz s3://${S3_BUCKET_NAME}/
 
 workflows:
   version: 2
-  build_and_deploy:
+  build_test_deploy:
     jobs:
       - build
+      - test:
+          requires:
+            - build
+      - package:
+          requires:
+            - test
+      - deploy_s3:
+          requires:
+            - package
