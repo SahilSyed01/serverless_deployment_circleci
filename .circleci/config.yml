@@ -24,6 +24,9 @@ jobs:
           name: Build Go application
           command: go build -o myapp
       - run:
+          name: Install tar
+          command: apk add --no-cache tar
+      - run:
           name: Package the application
           command: tar -czvf myapp.tar.gz myapp
       - persist_to_workspace:
