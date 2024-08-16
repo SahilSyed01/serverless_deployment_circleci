@@ -28,7 +28,9 @@ jobs:
             docker build -t $ECR_REPO_URL:latest .
 
   deploy:
-    executor: docker-executor  # Reuse the Docker executor
+    docker:
+      - image: docker:20.10.7  # Ensure Docker CLI is available
+      - image: amazonlinux:2  # Additional image to install AWS CLI if needed
     steps:
       - checkout
       - run:
