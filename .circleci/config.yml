@@ -3,13 +3,8 @@ version: 2.1
 executors:
   go-executor:
     docker:
-      - image: golang:1.22  # Use a Docker image with Go installed
-  docker-executor:
-    docker:
-      - image: docker:20.10.7  # Use Docker image with Docker installed
-  amazonlinux-executor:
-    docker:
-      - image: amazonlinux:2
+      - image: golang:1.22
+    working_directory: /go/src/github.com/SahilSyed01/service
 
 jobs:
   build:
@@ -17,61 +12,41 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Build Go Application
-          command: |
-            go mod download
-            go build -o service main.go
+          name: Set up Go modules
+          command: go mod tidy
+      - run:
+          name: Build Go application
+          command: go build -o myapp
 
-  build_and_push_image:
-    executor: docker-executor
+  test:
+    executor: go-executor
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.7
-          docker_layer_caching: true
       - run:
-          name: Install AWS CLI
-          command: |
-            apk add --no-cache py3-pip
-            pip3 install awscli
-      - run:
-          name: Log in to AWS ECR
-          command: |
-            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_REPO_URL
-      - run:
-          name: Build Docker Image
-          command: |
-            docker build -t $ECR_REPO_URL:latest .
-      - run:
-          name: Push Docker Image
-          command: |
-            docker push $ECR_REPO_URL:latest
+          name: Run tests
+          command: go test -v ./...
 
   deploy:
-    executor: amazonlinux-executor
+    docker:
+      - image: circleci/python:3.8
     steps:
       - checkout
       - run:
-          name: Install AWS CLI
-          command: |
-            yum install -y python3
-            pip3 install awscli
+          name: Set Permissions for Deploy Script
+          command: chmod +x deploy.sh
       - run:
-          name: Deploy to S3
+          name: Deploy to EC2
           command: |
-            aws s3 sync ./ s3://unique-service-files-bucket-12345 --delete
+            ./deploy.sh
 
 workflows:
-  build-deploy:
+  version: 2
+  build_test_deploy:
     jobs:
       - build
-      - build_and_push_image:
+      - test:
           requires:
             - build
       - deploy:
           requires:
-            - build_and_push_image
-          filters:
-            branches:
-              only: main
-#
+            - test
