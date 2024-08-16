@@ -34,9 +34,9 @@ jobs:
       - image: circleci/python:3.8
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - myapp
+      - run:
+          name: Download binary artifact
+          command: wget "$CIRCLE_ARTIFACTS/myapp"
       - run:
           name: Set Permissions for Deploy Script
           command: chmod +x deploy.sh
