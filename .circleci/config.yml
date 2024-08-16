@@ -1,5 +1,36 @@
 version: 2.1
 
+executors:
+  docker-executor:
+    docker:
+      - image: golang:1.22
+
+jobs:
+  build:
+    executor: docker-executor
+    steps:
+      - checkout
+      - run:
+          name: Build Go Application
+          command: |
+            go mod download
+            go build -o service main.go
+
+  deploy:
+    docker:
+      - image: amazonlinux:2
+    steps:
+      - checkout
+      - run:
+          name: Install AWS CLI
+          command: |
+            yum install -y python3
+            pip3 install awscli
+      - run:
+          name: Deploy to S3
+          command: |
+            aws s3 sync ./ s3://unique-service-files-bucket-12345 --delete
+
 workflows:
   build-deploy:
     jobs:
@@ -10,36 +41,3 @@ workflows:
           filters:
             branches:
               only: main
-
-jobs:
-  build:
-    docker:
-      - image: golang:1.22 # Updated to a standard Golang Docker image
-    steps:
-      - checkout
-      - run:
-          name: Set up Go modules
-          command: go mod tidy
-      - run:
-          name: Build Go application
-          command: go build -o myapp
-      - run:
-          name: Package the application
-          command: tar -czvf myapp.tar.gz myapp
-      - persist_to_workspace:
-          root: .
-          paths:
-            - myapp.tar.gz
-
-  deploy:
-    docker:
-      - image: amazon/aws-cli:2.4.0 # Use AWS CLI Docker image for deployment
-    steps:
-      - attach_workspace:
-          at: /workspace
-      - run:
-          name: Verify AWS CLI installation
-          command: aws --version
-      - run:
-          name: Deploy to S3
-          command: aws s3 cp /workspace/myapp.tar.gz s3://${S3_BUCKET_NAME}/
