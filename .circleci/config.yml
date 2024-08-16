@@ -1,60 +1,39 @@
 version: 2.1
 
-executors:
-  go-executor:
-    docker:
-      - image: golang:1.22
-    working_directory: /go/src/github.com/SahilSyed01/service
-
 jobs:
   build:
-    executor: go-executor
+    docker:
+      - image: circleci/golang:1.18  # Use an appropriate Go version
     steps:
       - checkout
-      - run:
-          name: Set up Go modules
-          command: go mod tidy
-      - run:
-          name: Build Go application
-          command: go build -o myapp
 
-  test:
-    executor: go-executor
-    steps:
-      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            go mod download
+
       - run:
           name: Run tests
-          command: go test -v ./...
-
-  deploy:
-    docker:
-      - image: circleci/python:3.8
-    steps:
-      - checkout
-      - run:
-          name: Print EC2_SSH_KEY Length
-          command: echo "${#EC2_SSH_KEY}"
-
-      - run:
-          name: Verify SSH Key Format
-          command: file /tmp/your-key.pem
-
-      - run:
-          name: Set Permissions for Deploy Script
-          command: chmod +x deploy.sh
-      - run:
-          name: Deploy to EC2
           command: |
-            ./deploy.sh
+            go test ./...
+
+      - run:
+          name: Build the Go binary
+          command: |
+            go build -o service
+
+      - run:
+          name: Package the build files
+          command: |
+            tar -czvf service-files.tar.gz service
+
+      - run:
+          name: Deploy to S3
+          command: |
+            aws s3 cp service-files.tar.gz s3://${S3_BUCKET_NAME}/
 
 workflows:
   version: 2
-  build_test_deploy:
+  build_and_deploy:
     jobs:
       - build
-      - test:
-          requires:
-            - build
-      - deploy:
-          requires:
-            - test
