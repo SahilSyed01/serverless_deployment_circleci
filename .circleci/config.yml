@@ -17,17 +17,14 @@ jobs:
       - run:
           name: Build Go application
           command: go build -o myapp
-      - persist_to_workspace:
-          root: /go/src/github.com/SahilSyed01/service
-          paths:
-            - myapp
+      - store_artifacts:
+          path: myapp
+          destination: myapp
 
   test:
     executor: go-executor
     steps:
       - checkout
-      - attach_workspace:
-          at: /go/src/github.com/SahilSyed01/service
       - run:
           name: Run tests
           command: go test -v ./...
@@ -37,14 +34,9 @@ jobs:
       - image: circleci/python:3.8
     steps:
       - checkout
-      - attach_workspace:
-          at: /workspace
       - run:
-          name: Print EC2_SSH_KEY Length
-          command: echo "${#EC2_SSH_KEY}"
-      - run:
-          name: Verify SSH Key Format
-          command: file /tmp/your-key.pem
+          name: Download binary artifact
+          command: curl -o myapp ${CIRCLE_ARTIFACTS_URL}/myapp
       - run:
           name: Set Permissions for Deploy Script
           command: chmod +x deploy.sh
@@ -63,4 +55,3 @@ workflows:
       - deploy:
           requires:
             - test
-#

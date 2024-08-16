@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Path to your Go binary
-BINARY_PATH="/workspace/myapp"
+BINARY_PATH="myapp"
 
 # Ensure the binary exists
 if [ ! -f "$BINARY_PATH" ]; then
