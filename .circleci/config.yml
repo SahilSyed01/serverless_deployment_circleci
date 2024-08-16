@@ -1,19 +1,32 @@
 version: 2.1
 
-jobs:
-  build_and_push_image:
+executors:
+  docker-executor:
     docker:
-      - image: docker:20.10.7 # Use Docker for the build job
+      - image: golang:1.22
+
+jobs:
+  build_and_deploy:
+    executor: docker-executor
     steps:
-      - checkout # Check out the code from GitHub
-      - setup_remote_docker:
-          version: 20.10.7
-          docker_layer_caching: true
+      - checkout
+      - run:
+          name: Build Go Application
+          command: |
+            go mod download
+            go build -o service main.go
       - run:
           name: Install AWS CLI
           command: |
             apk add --no-cache py3-pip
             pip3 install awscli
+      - run:
+          name: Deploy Go Application to S3
+          command: |
+            aws s3 sync ./ s3://unique-service-files-bucket-12345 --delete
+      - setup_remote_docker:
+          version: 20.10.7
+          docker_layer_caching: true
       - run:
           name: Log in to AWS ECR
           command: |
@@ -28,6 +41,9 @@ jobs:
             docker push $ECR_REPO_URL:latest
 
 workflows:
-  build_and_push:
+  build_and_deploy:
     jobs:
-      - build_and_push_image
+      - build_and_deploy:
+          filters:
+            branches:
+              only: main
