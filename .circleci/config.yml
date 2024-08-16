@@ -17,10 +17,10 @@ jobs:
       - run:
           name: Build Go application
           command: go build -o myapp
-      - run:
-          name: List files after build
-          command: ls -al /go/src/github.com/SahilSyed01/service
-
+      - persist_to_workspace:
+          root: /go/src/github.com/SahilSyed01/service
+          paths:
+            - myapp
 
   test:
     executor: go-executor
@@ -35,21 +35,20 @@ jobs:
       - image: circleci/python:3.8
     steps:
       - checkout
+      - attach_workspace:
+          at: /workspace
       - run:
           name: Print EC2_SSH_KEY Length
           command: echo "${#EC2_SSH_KEY}"
-
       - run:
           name: Verify SSH Key Format
           command: file /tmp/your-key.pem
-
       - run:
           name: Set Permissions for Deploy Script
           command: chmod +x deploy.sh
       - run:
           name: Deploy to EC2
-          command: |
-            ./deploy.sh
+          command: ./deploy.sh
 
 workflows:
   version: 2

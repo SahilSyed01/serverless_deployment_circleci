@@ -1,18 +1,13 @@
 #!/bin/bash
 
-# Path to your Go binary (update to match the CircleCI build output)
-BINARY_PATH="/go/src/github.com/SahilSyed01/service/myapp"
+# Path to your Go binary (update to match the attached workspace)
+BINARY_PATH="/workspace/myapp"
 
 # Ensure the binary exists
-echo "Listing files in the current directory:"
-ls -al /go/src/github.com/SahilSyed01/service
-
-# Then proceed to check for the binary
 if [ ! -f "$BINARY_PATH" ]; then
   echo "Error: Binary not found at $BINARY_PATH"
   exit 1
 fi
-
 
 # Decode the base64 encoded SSH key and save it as a file
 echo "$EC2_SSH_KEY" | base64 --decode > /tmp/your-key.pem
