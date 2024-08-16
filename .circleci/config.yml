@@ -17,6 +17,10 @@ jobs:
       - run:
           name: Build Go application
           command: go build -o myapp
+      - persist_to_workspace:
+          root: .
+          paths:
+            - myapp
 
   test:
     executor: go-executor
@@ -25,23 +29,26 @@ jobs:
       - run:
           name: Run tests
           command: go test -v ./...
+      - persist_to_workspace:
+          root: .
+          paths:
+            - myapp
 
   package:
     executor: go-executor
     steps:
-      - checkout
-      - run:
-          name: Build Go application
-          command: go build -o myapp
+      - attach_workspace:
+          at: /workspace
       - run:
           name: Package the application
-          command: tar -czvf myapp.tar.gz myapp
+          command: tar -czvf /workspace/myapp.tar.gz /workspace/myapp
 
   deploy_s3:
     docker:
       - image: circleci/python:3.8
     steps:
-      - checkout
+      - attach_workspace:
+          at: /workspace
       - run:
           name: Install AWS CLI
           command: |
@@ -50,7 +57,7 @@ jobs:
             sudo ./aws/install
       - run:
           name: Deploy to S3
-          command: aws s3 cp myapp.tar.gz s3://${S3_BUCKET_NAME}/
+          command: aws s3 cp /workspace/myapp.tar.gz s3://${S3_BUCKET_NAME}/
 
 workflows:
   version: 2
