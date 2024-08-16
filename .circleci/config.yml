@@ -26,6 +26,8 @@ jobs:
     executor: go-executor
     steps:
       - checkout
+      - attach_workspace:
+          at: /go/src/github.com/SahilSyed01/service
       - run:
           name: Run tests
           command: go test -v ./...

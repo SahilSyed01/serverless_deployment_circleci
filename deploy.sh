@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Path to your Go binary (update to match the attached workspace)
+# Path to your Go binary
 BINARY_PATH="/workspace/myapp"
 
 # Ensure the binary exists
