@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Path to your Go binary
-BINARY_PATH="/workspace/myservice"
+# Path to your Go binary (update to match the CircleCI build output)
+BINARY_PATH="/go/src/github.com/SahilSyed01/service/myapp"
 
 # Ensure the binary exists
 if [ ! -f "$BINARY_PATH" ]; then
