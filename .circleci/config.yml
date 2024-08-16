@@ -14,7 +14,7 @@ workflows:
 jobs:
   build:
     docker:
-      - image: golang:1.22
+      - image: circleci/golang:1.18 # Use CircleCI's Golang image which includes `tar`
     steps:
       - checkout
       - run:
@@ -23,10 +23,6 @@ jobs:
       - run:
           name: Build Go application
           command: go build -o myapp
-      - run:
-          name: Install tar
-          command: |
-            apt-get update && apt-get install -y tar
       - run:
           name: Package the application
           command: tar -czvf myapp.tar.gz myapp
@@ -37,7 +33,7 @@ jobs:
 
   deploy:
     docker:
-      - image: amazon/aws-cli:2.4.0
+      - image: amazon/aws-cli:2.4.0 # Use AWS CLI Docker image for deployment
     steps:
       - attach_workspace:
           at: /workspace
