@@ -26,14 +26,20 @@ jobs:
       - run:
           name: Package the application
           command: tar -czvf myapp.tar.gz myapp
+      - persist_to_workspace:
+          root: .
+          paths:
+            - myapp.tar.gz
 
   deploy:
     docker:
       - image: amazon/aws-cli:2.4.0
     steps:
+      - attach_workspace:
+          at: /workspace
       - run:
           name: Verify AWS CLI installation
           command: aws --version
       - run:
           name: Deploy to S3
-          command: aws s3 cp myapp.tar.gz s3://${S3_BUCKET_NAME}/
+          command: aws s3 cp /workspace/myapp.tar.gz s3://${S3_BUCKET_NAME}/
