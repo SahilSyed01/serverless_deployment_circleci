@@ -29,22 +29,8 @@ jobs:
 
   deploy:
     docker:
-      - image: circleci/python:3.8
+      - image: amazon/aws-cli:2.4.0
     steps:
-      - run:
-          name: Install awscli
-          command: |
-            curl "https://d1uj6qtbmh3dt5.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            if [ $? -ne 0 ]; then
-              echo "Failed to download AWS CLI package."
-              exit 1
-            fi
-            unzip awscliv2.zip
-            if [ $? -ne 0 ]; then
-              echo "Failed to unzip AWS CLI package."
-              exit 1
-            fi
-            sudo ./aws/install
       - run:
           name: Verify AWS CLI installation
           command: aws --version
