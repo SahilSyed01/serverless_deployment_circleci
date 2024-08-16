@@ -14,7 +14,7 @@ workflows:
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.18 # Use CircleCI's Golang image which includes `tar`
+      - image: golang:1.22 # Updated to a standard Golang Docker image
     steps:
       - checkout
       - run:
