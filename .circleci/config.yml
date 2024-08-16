@@ -3,7 +3,7 @@ version: 2.1
 executors:
   docker-executor:
     docker:
-      - image: golang:1.22
+      - image: docker:20.10.7  # Using Docker image to ensure Docker CLI is available
 
 jobs:
   build:
@@ -24,8 +24,7 @@ jobs:
             docker build -t $ECR_REPO_URL:latest .
 
   deploy:
-    docker:
-      - image: docker:20.10.7
+    executor: docker-executor  # Reuse the same executor
     steps:
       - checkout
       - run:
