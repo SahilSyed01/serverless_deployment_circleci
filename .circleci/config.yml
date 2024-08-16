@@ -8,7 +8,7 @@ executors:
   docker-with-docker:
     docker:
       - image: docker:20.10.7
-    # `setup_remote_docker` should be defined in the job, not the executor
+    # This setup_remote_docker should be within the job steps, not the executor
 
 jobs:
   build:
