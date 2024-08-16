@@ -1,14 +1,20 @@
 version: 2.1
 
-executors:
-  go-executor:
-    docker:
-      - image: golang:1.22
-    working_directory: /go/src/github.com/SahilSyed01/service
+workflows:
+  build-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: main
 
 jobs:
   build:
-    executor: go-executor
+    docker:
+      - image: golang:1.22
     steps:
       - checkout
       - run:
@@ -37,17 +43,5 @@ jobs:
               exit 1
             fi
       - run:
-          name: Upload to S3
+          name: Deploy to S3
           command: aws s3 cp myapp.tar.gz s3://${S3_BUCKET_NAME}/
-
-workflows:
-  version: 2
-  build-deploy:
-    jobs:
-      - build
-      - deploy:
-          requires:
-            - build
-          filters:
-            branches:
-              only: main
