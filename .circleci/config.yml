@@ -18,21 +18,18 @@ jobs:
           name: Build Go application
           command: go build -o myapp
       - persist_to_workspace:
-          root: .
+          root: /go/src/github.com/SahilSyed01/service
           paths:
             - myapp
 
   test:
     executor: go-executor
     steps:
-      - checkout
+      - attach_workspace:
+          at: /workspace
       - run:
           name: Run tests
           command: go test -v ./...
-      - persist_to_workspace:
-          root: .
-          paths:
-            - myapp
 
   package:
     executor: go-executor
@@ -49,6 +46,10 @@ jobs:
     steps:
       - attach_workspace:
           at: /workspace
+      - run:
+          name: List workspace files
+          command: ls -la /workspace
+
       - run:
           name: Install AWS CLI
           command: |
