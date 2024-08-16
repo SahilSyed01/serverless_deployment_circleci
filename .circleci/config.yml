@@ -17,9 +17,10 @@ jobs:
       - run:
           name: Build Go application
           command: go build -o myapp
-      - store_artifacts:
-          path: myapp
-          destination: myapp
+      - persist_to_workspace:
+          root: /go/src/github.com/SahilSyed01/service
+          paths:
+            - myapp
 
   test:
     executor: go-executor
@@ -34,9 +35,8 @@ jobs:
       - image: circleci/python:3.8
     steps:
       - checkout
-      - run:
-          name: Download binary artifact
-          command: wget "$CIRCLE_ARTIFACTS/myapp"
+      - attach_workspace:
+          at: /workspace
       - run:
           name: Set Permissions for Deploy Script
           command: chmod +x deploy.sh
