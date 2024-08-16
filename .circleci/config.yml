@@ -28,8 +28,11 @@ jobs:
       - attach_workspace:
           at: /workspace
       - run:
+          name: Create Workspace Directory
+          command: mkdir -p /workspace
+      - run:
           name: Package the application
-          command: tar -czvf /workspace/myapp.tar.gz /workspace/myapp
+          command: tar -czvf /workspace/myapp.tar.gz -C /workspace myapp
 
   deploy:
     docker:
