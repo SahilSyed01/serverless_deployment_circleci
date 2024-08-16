@@ -25,7 +25,8 @@ jobs:
           command: go build -o myapp
       - run:
           name: Install tar
-          command: apk add --no-cache tar
+          command: |
+            apt-get update && apt-get install -y tar
       - run:
           name: Package the application
           command: tar -czvf myapp.tar.gz myapp
