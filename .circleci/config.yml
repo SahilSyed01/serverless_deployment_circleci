@@ -47,7 +47,7 @@ jobs:
           command: |
             docker push $ECR_REPO_URL:latest
 
-  deploy:
+  deploy_to_s3:
     executor: amazonlinux-executor
     steps:
       - checkout
@@ -61,6 +61,24 @@ jobs:
           command: |
             aws s3 sync ./ s3://unique-service-files-bucket-12345 --delete
 
+  deploy_to_ecs:
+    docker:
+      - image: circleci/python:3.8
+    steps:
+      - checkout
+      - run:
+          name: Install AWS CLI
+          command: |
+            pip install awscli
+      - run:
+          name: Deploy to ECS
+          command: |
+            aws ecs update-service \
+              --cluster ${AWS_RESOURCE_NAME_PREFIX}-cluster \
+              --service ${AWS_RESOURCE_NAME_PREFIX}-service \
+              --force-new-deployment \
+              --region us-east-1
+
 workflows:
   build-deploy:
     jobs:
@@ -68,10 +86,12 @@ workflows:
       - build_and_push_image:
           requires:
             - build
-      - deploy:
+      - deploy_to_s3:
+          requires:
+            - build_and_push_image
+      - deploy_to_ecs:
           requires:
             - build_and_push_image
           filters:
             branches:
               only: main
-#
