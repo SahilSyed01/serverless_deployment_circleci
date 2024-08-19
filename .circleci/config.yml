@@ -7,7 +7,7 @@ executors:
   docker-executor:
     docker:
       - image: docker:20.10.7  
-  amazonlinux-executor:
+  deploy-executor:
     docker:
       - image: amazonlinux:2
 
@@ -48,7 +48,7 @@ jobs:
             docker push $ECR_REPO_URL:latest
 
   deploy_to_s3:
-    executor: amazonlinux-executor
+    executor: deploy-executor
     steps:
       - checkout
       - run:
