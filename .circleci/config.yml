@@ -73,7 +73,7 @@ jobs:
       - run:
           name: Deploy to ECS
           command: |
-            aws ecs create-service \
+            aws ecs update-service \
               --cluster ${AWS_RESOURCE_NAME_PREFIX}-cluster \
               --service ${AWS_RESOURCE_NAME_PREFIX}-service \
               --force-new-deployment \
