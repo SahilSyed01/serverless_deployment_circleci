@@ -62,14 +62,14 @@ jobs:
             aws s3 sync ./ s3://unique-service-files-bucket-12345 --delete
 
   deploy_to_ecs:
-    docker:
-      - image: circleci/python:3.8
+    executor: deploy-executor
     steps:
       - checkout
       - run:
           name: Install AWS CLI
           command: |
-            pip install awscli
+            yum install -y python3
+            pip3 install awscli
       - run:
           name: Deploy to ECS
           command: |
@@ -95,4 +95,3 @@ workflows:
           filters:
             branches:
               only: main
-
