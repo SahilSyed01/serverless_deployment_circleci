@@ -10,7 +10,7 @@ executors:
   deploy-executor:
     docker:
       - image: amazonlinux:2
-      - image: circleci/python:3.8  # Make sure Python 3.8 image also has AWS CLI installed if needed.
+      - image: circleci/python:3.8  
 
 jobs:
   build:
