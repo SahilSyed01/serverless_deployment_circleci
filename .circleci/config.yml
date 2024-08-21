@@ -10,12 +10,17 @@ executors:
   deploy-executor:
     docker:
       - image: amazonlinux:2
+      - image: circleci/python:3.8  # Make sure Python 3.8 image also has AWS CLI installed if needed.
 
 jobs:
   build:
     executor: go-executor
     steps:
       - checkout
+      - run:
+          name: Install AWS CLI
+          command: |
+            apt-get update && apt-get install -y awscli
       - run:
           name: Build Go Application
           command: |
@@ -70,8 +75,7 @@ jobs:
       - run:
           name: Install AWS CLI
           command: |
-            yum install -y python3
-            pip3 install awscli
+            yum install -y aws-cli
       - run:
           name: Deploy to S3
           command: |
