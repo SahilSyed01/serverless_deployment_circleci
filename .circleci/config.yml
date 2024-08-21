@@ -10,7 +10,6 @@ executors:
   deploy-executor:
     docker:
       - image: amazonlinux:2
-      - image: circleci/python:3.8  
 
 jobs:
   build:
@@ -18,22 +17,10 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install AWS CLI and less
-          command: |
-            apt-get update && apt-get install -y awscli less
-      - run:
           name: Build Go Application
           command: |
             go mod download
             go build -o service main.go
-      - run:
-          name: Notify Build Status
-          command: |
-            if [ $? -eq 0 ]; then
-              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "Build succeeded" --region us-east-1
-            else
-              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "Build failed" --region us-east-1
-            fi
 
   build_and_push_image:
     executor: docker-executor
@@ -43,9 +30,9 @@ jobs:
           version: 20.10.7
           docker_layer_caching: false
       - run:
-          name: Install AWS CLI and less
+          name: Install AWS CLI
           command: |
-            apk add --no-cache py3-pip less
+            apk add --no-cache py3-pip
             pip3 install awscli
       - run:
           name: Log in to AWS ECR
@@ -59,35 +46,20 @@ jobs:
           name: Push Docker Image
           command: |
             docker push $ECR_REPO_URL:latest
-      - run:
-          name: Notify Docker Build and Push Status
-          command: |
-            if [ $? -eq 0 ]; then
-              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "Docker build and push succeeded" --region us-east-1
-            else
-              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "Docker build and push failed" --region us-east-1
-            fi
 
   deploy_to_s3:
     executor: deploy-executor
     steps:
       - checkout
       - run:
-          name: Install AWS CLI and less
+          name: Install AWS CLI
           command: |
-            yum install -y aws-cli less
+            yum install -y python3
+            pip3 install awscli
       - run:
           name: Deploy to S3
           command: |
             aws s3 sync ./ s3://unique-service-files-bucket-12345 --delete
-      - run:
-          name: Notify S3 Deployment Status
-          command: |
-            if [ $? -eq 0 ]; then
-              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "Deployment to S3 succeeded" --region us-east-1
-            else
-              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "Deployment to S3 failed" --region us-east-1
-            fi
 
   deploy_to_ecs:
     docker:
@@ -95,10 +67,9 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install AWS CLI and less
+          name: Install AWS CLI
           command: |
             pip install awscli
-            apt-get update && apt-get install -y less
       - run:
           name: Deploy to ECS
           command: |
@@ -107,14 +78,6 @@ jobs:
               --service ${AWS_RESOURCE_NAME_PREFIX}-service \
               --force-new-deployment \
               --region us-east-1
-      - run:
-          name: Notify ECS Deployment Status
-          command: |
-            if [ $? -eq 0 ]; then
-              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "ECS deployment succeeded" --region us-east-1
-            else
-              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "ECS deployment failed" --region us-east-1
-            fi
 
 workflows:
   build-deploy:
@@ -132,3 +95,4 @@ workflows:
           filters:
             branches:
               only: main
+
