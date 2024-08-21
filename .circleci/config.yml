@@ -18,9 +18,9 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install AWS CLI
+          name: Install AWS CLI and less
           command: |
-            apt-get update && apt-get install -y awscli
+            apt-get update && apt-get install -y awscli less
       - run:
           name: Build Go Application
           command: |
@@ -43,9 +43,9 @@ jobs:
           version: 20.10.7
           docker_layer_caching: false
       - run:
-          name: Install AWS CLI
+          name: Install AWS CLI and less
           command: |
-            apk add --no-cache py3-pip
+            apk add --no-cache py3-pip less
             pip3 install awscli
       - run:
           name: Log in to AWS ECR
@@ -73,9 +73,9 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install AWS CLI
+          name: Install AWS CLI and less
           command: |
-            yum install -y aws-cli
+            yum install -y aws-cli less
       - run:
           name: Deploy to S3
           command: |
@@ -95,9 +95,10 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install AWS CLI
+          name: Install AWS CLI and less
           command: |
             pip install awscli
+            apt-get update && apt-get install -y less
       - run:
           name: Deploy to ECS
           command: |
