@@ -21,6 +21,14 @@ jobs:
           command: |
             go mod download
             go build -o service main.go
+      - run:
+          name: Notify Build Status
+          command: |
+            if [ $? -eq 0 ]; then
+              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "Build succeeded" --region us-east-1
+            else
+              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "Build failed" --region us-east-1
+            fi
 
   build_and_push_image:
     executor: docker-executor
@@ -46,6 +54,14 @@ jobs:
           name: Push Docker Image
           command: |
             docker push $ECR_REPO_URL:latest
+      - run:
+          name: Notify Docker Build and Push Status
+          command: |
+            if [ $? -eq 0 ]; then
+              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "Docker build and push succeeded" --region us-east-1
+            else
+              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "Docker build and push failed" --region us-east-1
+            fi
 
   deploy_to_s3:
     executor: deploy-executor
@@ -60,6 +76,14 @@ jobs:
           name: Deploy to S3
           command: |
             aws s3 sync ./ s3://unique-service-files-bucket-12345 --delete
+      - run:
+          name: Notify S3 Deployment Status
+          command: |
+            if [ $? -eq 0 ]; then
+              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "Deployment to S3 succeeded" --region us-east-1
+            else
+              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "Deployment to S3 failed" --region us-east-1
+            fi
 
   deploy_to_ecs:
     docker:
@@ -71,28 +95,20 @@ jobs:
           command: |
             pip install awscli
       - run:
-          name: Check for Existing Task Definition
+          name: Deploy to ECS
           command: |
-            CURRENT_TASK_DEF_ARN=$(aws ecs describe-services \
+            aws ecs update-service \
               --cluster ${AWS_RESOURCE_NAME_PREFIX}-cluster \
-              --services ${AWS_RESOURCE_NAME_PREFIX}-service \
-              --region us-east-1 \
-              --query "services[0].taskDefinition" --output text)
-              
-            NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
-              --family ${AWS_RESOURCE_NAME_PREFIX}-task-def \
-              --container-definitions '[{"name":"service","image":"'"${ECR_REPO_URL}:latest"'","essential":true,"memory":512,"cpu":256}]' \
-              --region us-east-1 \
-              --query "taskDefinition.taskDefinitionArn" --output text)
-
-            if [ "$CURRENT_TASK_DEF_ARN" != "$NEW_TASK_DEF_ARN" ]; then
-              aws ecs update-service \
-                --cluster ${AWS_RESOURCE_NAME_PREFIX}-cluster \
-                --service ${AWS_RESOURCE_NAME_PREFIX}-service \
-                --task-definition $NEW_TASK_DEF_ARN \
-                --region us-east-1
+              --service ${AWS_RESOURCE_NAME_PREFIX}-service \
+              --force-new-deployment \
+              --region us-east-1
+      - run:
+          name: Notify ECS Deployment Status
+          command: |
+            if [ $? -eq 0 ]; then
+              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "ECS deployment succeeded" --region us-east-1
             else
-              echo "No changes in task definition, skipping service update."
+              aws sns publish --topic-arn arn:aws:sns:us-east-1:490004644032:CircleCIPipelineNotifications --message "ECS deployment failed" --region us-east-1
             fi
 
 workflows:
@@ -111,4 +127,3 @@ workflows:
           filters:
             branches:
               only: main
-
