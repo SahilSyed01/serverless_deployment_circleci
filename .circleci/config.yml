@@ -28,7 +28,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 20.10.7
-          docker_layer_caching: true
+          docker_layer_caching: false
       - run:
           name: Install AWS CLI
           command: |
@@ -71,13 +71,29 @@ jobs:
           command: |
             pip install awscli
       - run:
-          name: Deploy to ECS
+          name: Check for Existing Task Definition
           command: |
-            aws ecs update-service \
+            CURRENT_TASK_DEF_ARN=$(aws ecs describe-services \
               --cluster ${AWS_RESOURCE_NAME_PREFIX}-cluster \
-              --service ${AWS_RESOURCE_NAME_PREFIX}-service \
-              --force-new-deployment \
-              --region us-east-1
+              --services ${AWS_RESOURCE_NAME_PREFIX}-service \
+              --region us-east-1 \
+              --query "services[0].taskDefinition" --output text)
+              
+            NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+              --family ${AWS_RESOURCE_NAME_PREFIX}-task-def \
+              --container-definitions '[{"name":"service","image":"'"${ECR_REPO_URL}:latest"'","essential":true,"memory":512,"cpu":256}]' \
+              --region us-east-1 \
+              --query "taskDefinition.taskDefinitionArn" --output text)
+
+            if [ "$CURRENT_TASK_DEF_ARN" != "$NEW_TASK_DEF_ARN" ]; then
+              aws ecs update-service \
+                --cluster ${AWS_RESOURCE_NAME_PREFIX}-cluster \
+                --service ${AWS_RESOURCE_NAME_PREFIX}-service \
+                --task-definition $NEW_TASK_DEF_ARN \
+                --region us-east-1
+            else
+              echo "No changes in task definition, skipping service update."
+            fi
 
 workflows:
   build-deploy:
