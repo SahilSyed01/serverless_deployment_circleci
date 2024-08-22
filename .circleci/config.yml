@@ -22,6 +22,15 @@ jobs:
             go mod download
             go build -o service main.go
 
+  test:
+    executor: go-executor
+    steps:
+      - checkout
+      - run:
+          name: Run Go Tests
+          command: |
+            go test ./...
+
   build_and_push_image:
     executor: docker-executor
     steps:
@@ -83,9 +92,12 @@ workflows:
   build-deploy:
     jobs:
       - build
-      - build_and_push_image:
+      - test:
           requires:
             - build
+      - build_and_push_image:
+          requires:
+            - test
       - deploy_to_s3:
           requires:
             - build_and_push_image
@@ -95,4 +107,3 @@ workflows:
           filters:
             branches:
               only: main
-
