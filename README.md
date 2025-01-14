@@ -4,4 +4,4 @@
 
 2.This is serverless Deployement which uses Fargate in AWS ECS Service.
 
-3.This invloves creating a docker image, pushing it into a ECR Repo and using that image in Deployment in ECS Using Fargate.
+3.This invloves building a docker image for the Employee service, pushing it into a ECR Repo and using that image in Deployment in ECS Using Fargate.
